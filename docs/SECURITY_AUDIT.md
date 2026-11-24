@@ -1,6 +1,6 @@
 # Security Audit
 
-Scope: full review of the repository during the 2026 modernization. This is a self-performed engineering review, not an independent penetration test.
+Scope: full review of the repository during the 2026 modernization, followed by a second review of the rebuilt code. Both are self-performed engineering reviews, not an independent penetration test.
 
 ## Findings in the original code, now resolved
 
@@ -18,13 +18,28 @@ Scope: full review of the repository during the 2026 modernization. This is a se
 
 No real credential or private key was found in the three-commit history. The old secret value was a placeholder.
 
+## Findings in the rebuilt code, now resolved
+
+Each code finding was reproduced first and has a regression test.
+
+| Severity | Finding | Resolution |
+| --- | --- | --- |
+| Medium | Login timing revealed whether a username exists: unknown users cost two Argon2id operations, and over-length passwords returned immediately for known users | One verification against a precomputed decoy on every failure path |
+| Medium | The TOTP code used during enrollment could be replayed at first login | Enrollment records the accepted step |
+| Medium | IPv6 clients could evade rate limits by rotating addresses within their /64 | Limits group IPv6 by /64 and normalize IPv4-mapped addresses |
+| Low | A rate-limited address could keep consuming an account's login attempts and adding counter rows | The account limit is evaluated only after the address limit passes |
+| Low | A removed admin kept access until the session expired, up to 8 hours | Each authenticated request confirms the account exists |
+| Low | The CSP blocked a background request made by the reCAPTCHA widget | `connect-src` allows the reCAPTCHA path on captcha pages only |
+| Low | The documented setup truncated the database DSN when `.env` was sourced by a shell | The value is quoted, and the setup steps were corrected |
+| Low | CI skipped Composer setup while depending on Composer | CI installs Composer 2 explicitly |
+
 ## Controls added
 
 Argon2id hashing, TOTP with replay protection, XChaCha20-Poly1305 field encryption with record binding, CSRF protection, strict session handling, input validation, mail header injection protection, prepared statements, and generic error responses. Notification emails contain no submitter data.
 
 ## Dependency status
 
-`composer audit --locked` reported no known advisories on 2026-11-24 (UTC). Lifecycle scripts and Composer plugins are disabled during installation.
+`composer audit --locked` reported no known advisories when rerun from a clean install on 2026-11-24 (UTC). Lifecycle scripts and Composer plugins are disabled during installation.
 
 ## Known limitations
 
@@ -39,7 +54,9 @@ Argon2id hashing, TOTP with replay protection, XChaCha20-Poly1305 field encrypti
 
 ## Verification limits
 
-- Not exercised against the live Google reCAPTCHA service; success paths use a test double, and the unreachable-service path was verified to fail closed.
+- reCAPTCHA was exercised against Google's live service only with its published test keys, in six headless Chromium runs of the final code. Four completed: the widget was solved and the submission was stored encrypted. Two stopped before submission, one because the widget did not load within the wait and one because the checkbox click timed out; the cause was not determined. No CSP violation was logged in any run. Production keys and other browsers were not tested.
+- Automated tests use a reCAPTCHA test double, and the unreachable-service path was verified to fail closed.
 - Not exercised against a real SMTP server.
-- The CSP was not checked in a real browser with a live reCAPTCHA widget. Verify the widget renders before deploying.
+- Not deployed behind TLS and PHP-FPM. Production cookies and HSTS were checked on the PHP built-in server.
+- The GitHub Actions workflow has not run on GitHub.
 - No third-party penetration test has been performed.

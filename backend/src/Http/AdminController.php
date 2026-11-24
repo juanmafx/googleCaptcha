@@ -48,9 +48,8 @@ final readonly class AdminController
         }
 
         $username = $request->postString('username');
-        $addressAllowed = $this->rateLimiter->allow('login-address', $request->remoteAddress, self::LOGIN_ADDRESS_LIMIT, self::LOGIN_WINDOW_SECONDS);
-        $accountAllowed = $this->rateLimiter->allow('login-account', strtolower(substr($username, 0, 64)), self::LOGIN_ACCOUNT_LIMIT, self::LOGIN_WINDOW_SECONDS);
-        if (!$addressAllowed || !$accountAllowed) {
+        if (!$this->rateLimiter->allow('login-address', $request->rateLimitAddress(), self::LOGIN_ADDRESS_LIMIT, self::LOGIN_WINDOW_SECONDS)
+            || !$this->rateLimiter->allow('login-account', strtolower(substr($username, 0, 64)), self::LOGIN_ACCOUNT_LIMIT, self::LOGIN_WINDOW_SECONDS)) {
             return $this->tooManyAttempts(self::LOGIN_WINDOW_SECONDS);
         }
 
@@ -147,7 +146,9 @@ final readonly class AdminController
         }
 
         $now = $this->clock->now();
-        if ($now - $authenticatedAt > self::ABSOLUTE_TTL_SECONDS || $now - $lastSeenAt > self::IDLE_TTL_SECONDS) {
+        if ($now - $authenticatedAt > self::ABSOLUTE_TTL_SECONDS
+            || $now - $lastSeenAt > self::IDLE_TTL_SECONDS
+            || !$this->authenticator->isActive($adminId)) {
             $this->session->remove('admin_id');
             $this->session->remove('admin_authenticated_at');
             $this->session->remove('admin_last_seen_at');

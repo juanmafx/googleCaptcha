@@ -48,7 +48,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for request flows and design de
 
 ## Quick start
 
-Requirements: PHP 8.4 or newer with `curl`, `mbstring`, `pdo_mysql`, and `sodium`; Composer; MySQL 8.4; and a [reCAPTCHA v2 key pair](https://www.google.com/recaptcha/admin).
+Requirements: PHP 8.4.1 or newer built with Argon2 support and the `curl`, `mbstring`, `pdo_mysql`, and `sodium` extensions; Composer; MySQL 8.4; and a [reCAPTCHA v2 key pair](https://www.google.com/recaptcha/admin).
 
 ```bash
 composer install --no-scripts --no-plugins
@@ -56,11 +56,21 @@ cp .env.example .env
 php -r 'echo base64_encode(random_bytes(32)), PHP_EOL;'
 ```
 
-Put the generated value in `APP_MASTER_KEY`, fill in the remaining values, then load the schema and start the app:
+Put the generated value in `APP_MASTER_KEY` and fill in the remaining values. Create the database and a least-privilege application user with an administrative MySQL account, then load the schema with that same account:
+
+```bash
+mysql -h 127.0.0.1 -u root -p <<'SQL'
+CREATE DATABASE secure_contact CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+CREATE USER 'secure_contact'@'127.0.0.1' IDENTIFIED BY 'replace-with-a-strong-password';
+GRANT SELECT, INSERT, UPDATE, DELETE ON secure_contact.* TO 'secure_contact'@'127.0.0.1';
+SQL
+mysql -h 127.0.0.1 -u root -p secure_contact < db/schema.sql
+```
+
+Use the same password for `DATABASE_PASSWORD` in `.env`, then start the app:
 
 ```bash
 set -a; . ./.env; set +a
-mysql -h 127.0.0.1 -u "$DATABASE_USER" -p secure_contact < db/schema.sql
 php backend/bin/create-admin.php site-admin
 php -S 127.0.0.1:8080 -t backend/public backend/public/index.php
 ```
@@ -77,7 +87,7 @@ The PHP built-in server is for local development only.
 
 | Variable | Required | Description |
 | --- | --- | --- |
-| `APP_ENV` | No | `production` (default) or `development`. Production enables Secure `__Host-` cookies and HSTS, so it requires HTTPS. |
+| `APP_ENV` | No | `production` (default) or `development`. Production enables Secure `__Host-` cookies and one-year HSTS with `includeSubDomains`, so the host and all of its subdomains must serve HTTPS. |
 | `APP_MASTER_KEY` | Yes | Base64 of 32 random bytes. Encryption subkeys are derived from it. |
 | `RECAPTCHA_SITE_KEY` | Yes | Public site key. |
 | `RECAPTCHA_SECRET_KEY` | Yes | Server-side secret. |
@@ -90,6 +100,8 @@ The PHP built-in server is for local development only.
 | `MAIL_TO` | Yes | Notification recipient. |
 
 **Losing `APP_MASTER_KEY` makes stored submissions and TOTP secrets unrecoverable.** Back it up separately from the database.
+
+The application reads real environment variables and does not load `.env` itself. PHP-FPM clears the environment by default, so pass these variables through the pool configuration or set `clear_env = no`.
 
 ## Testing
 
@@ -105,12 +117,14 @@ TEST_DATABASE_DSN='mysql:host=127.0.0.1;dbname=contact_test;charset=utf8mb4' \
 TEST_DATABASE_USER=contact_test TEST_DATABASE_PASSWORD=change-me vendor/bin/phpunit
 ```
 
-Results of the latest recorded run are in [reports/tests/](reports/tests/). Automated tests replace Google and the mail server with test doubles; see the limitations in the [security audit](docs/SECURITY_AUDIT.md).
+Results of the latest recorded run are in [reports/tests/](reports/tests/). Automated tests replace Google and the mail server with test doubles. The reCAPTCHA flow was also exercised in a headless browser with Google's published test keys, with mixed results recorded in the audit; see the [security audit](docs/SECURITY_AUDIT.md) for what was and was not verified.
 
 ## Security notes
 
 - Argon2id password hashing (64 MiB, 3 iterations) with per-password salts.
-- TOTP second factor with replay protection and rate limiting.
+- TOTP second factor with replay protection, including the code used during enrollment, and rate limiting.
+- Login responses take the same Argon2id work for known and unknown usernames.
+- Rate limits group IPv6 clients by /64 prefix.
 - Authenticated field encryption bound to each record and field.
 - CSRF tokens, strict session cookies, session rotation, and idle and absolute timeouts.
 - Strict Content Security Policy with no inline scripts or styles.

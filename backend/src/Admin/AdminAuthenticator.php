@@ -44,6 +44,11 @@ final readonly class AdminAuthenticator
         return $admin;
     }
 
+    public function isActive(int $adminId): bool
+    {
+        return $this->admins->findById($adminId) !== null;
+    }
+
     public function verifySecondFactor(int $adminId, string $code): bool
     {
         $admin = $this->admins->findById($adminId);

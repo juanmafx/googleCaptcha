@@ -9,7 +9,7 @@ final class SecurityHeaders
     public static function for(bool $allowCaptcha, bool $strictTransport): array
     {
         $scriptSource = $allowCaptcha
-            ? "script-src https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; frame-src https://www.google.com/recaptcha/ https://recaptcha.google.com/recaptcha/"
+            ? "script-src https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; frame-src https://www.google.com/recaptcha/ https://recaptcha.google.com/recaptcha/; connect-src https://www.google.com/recaptcha/"
             : "script-src 'none'; frame-src 'none'";
 
         $headers = [

@@ -13,9 +13,12 @@ Admin Flow (SecureContact\Tests\Functional\AdminFlow)
  [x] Logout requires csrf and destroys session
  [x] Tampered record does not break dashboard
  [x] Records cannot be swapped between rows
+ [x] Blocked address does not consume account attempts
+ [x] Removed admin loses active session
  [x] Pagination is clamped
 
 App Config (SecureContact\Tests\Unit\AppConfig)
+ [x] Environment example survives shell sourcing
  [x] Defaults to production
  [x] Rejects invalid configuration with data set "missing key"
  [x] Rejects invalid configuration with data set "short key"
@@ -35,6 +38,8 @@ Contact Flow (SecureContact\Tests\Functional\ContactFlow)
  [x] Captcha token is never reflected
  [x] Array parameters do not crash
  [x] Rate limit blocks sixth submission
+ [x] Ipv 6 client cannot rotate addresses within its prefix
+ [x] Captcha pages allow the widget background request
  [x] Non captcha pages drop google from csp
  [x] Unknown route and stylesheet
 
@@ -57,6 +62,7 @@ Contact Validator (SecureContact\Tests\Unit\ContactValidator)
 
 Create Admin Command (SecureContact\Tests\Unit\CreateAdminCommand)
  [x] Creates admin with encrypted secret
+ [x] Confirmation code cannot be replayed at login
  [x] Rejects wrong confirmation code
  [x] Rejects short password
  [x] Rejects invalid username
@@ -92,6 +98,8 @@ Password Hasher (SecureContact\Tests\Unit\PasswordHasher)
  [x] Default cost meets documented parameters
  [x] Flags weaker hash for rehash
  [x] Rejects oversized password
+ [x] Decoy matches default cost so unknown users do not hash twice
+ [x] Oversized password still spends verification time
 
 Recaptcha Verifier (SecureContact\Tests\Unit\RecaptchaVerifier)
  [x] Sends secret in body over https
@@ -103,6 +111,14 @@ Recaptcha Verifier (SecureContact\Tests\Unit\RecaptchaVerifier)
  [x] Fails closed with data set "missing field"
  [x] Skips network for unusable tokens
  [x] Enforces expected hostname
+
+Request (SecureContact\Tests\Unit\Request)
+ [x] Rate limit address normalization with data set "same ipv6 prefix"
+ [x] Rate limit address normalization with data set "different ipv6 prefix"
+ [x] Rate limit address normalization with data set "equivalent ipv6 spelling"
+ [x] Rate limit address normalization with data set "distinct ipv4"
+ [x] Rate limit address normalization with data set "mapped ipv4 equals ipv4"
+ [x] Rate limit address normalization with data set "mapped ipv4 stays distinct"
 
 Symfony Submission Notifier (SecureContact\Tests\Unit\SymfonySubmissionNotifier)
  [x] Sends notification without personal data

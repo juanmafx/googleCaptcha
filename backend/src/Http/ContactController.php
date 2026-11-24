@@ -38,7 +38,7 @@ final readonly class ContactController
                 'message' => 'Your session expired. Reload the page and try again.',
             ]), 403);
         }
-        if (!$this->rateLimiter->allow('contact', $request->remoteAddress, self::SUBMIT_LIMIT, self::SUBMIT_WINDOW_SECONDS)) {
+        if (!$this->rateLimiter->allow('contact', $request->rateLimitAddress(), self::SUBMIT_LIMIT, self::SUBMIT_WINDOW_SECONDS)) {
             return Response::html($this->view->render('error', 'Too many requests', [
                 'message' => 'Too many submissions. Try again later.',
             ]), 429)->withHeaders(['Retry-After' => (string) self::SUBMIT_WINDOW_SECONDS]);

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace SecureContact\Tests\Functional;
 
 use PHPUnit\Framework\TestCase;
+use SecureContact\Http\Request;
+use SecureContact\Security\CsrfGuard;
 use SecureContact\Tests\Support\Harness;
 
 final class ContactFlowTest extends TestCase
@@ -119,6 +121,26 @@ final class ContactFlowTest extends TestCase
         self::assertSame(429, $blocked->status);
         self::assertSame('900', $blocked->headers['Retry-After']);
         self::assertCount(5, $harness->submissions->records);
+    }
+
+    public function testIpv6ClientCannotRotateAddressesWithinItsPrefix(): void
+    {
+        $harness = new Harness();
+        $fields = [...self::VALID, 'csrf_token' => (new CsrfGuard($harness->session))->token()];
+        for ($host = 1; $host <= 5; ++$host) {
+            $response = $harness->application->handle(new Request('POST', '/contact', [], $fields, '2001:db8:1:2::' . $host));
+            self::assertSame(303, $response->status);
+        }
+        $blocked = $harness->application->handle(new Request('POST', '/contact', [], $fields, '2001:db8:1:2::6'));
+
+        self::assertSame(429, $blocked->status);
+    }
+
+    public function testCaptchaPagesAllowTheWidgetBackgroundRequest(): void
+    {
+        $policy = (new Harness())->get('/')->headers['Content-Security-Policy'];
+
+        self::assertStringContainsString('connect-src https://www.google.com/recaptcha/', $policy);
     }
 
     public function testNonCaptchaPagesDropGoogleFromCsp(): void

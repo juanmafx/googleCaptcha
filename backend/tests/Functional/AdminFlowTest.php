@@ -172,6 +172,29 @@ final class AdminFlowTest extends TestCase
         self::assertStringContainsString('could not be decrypted', $harness->get('/admin')->body);
     }
 
+    public function testBlockedAddressDoesNotConsumeAccountAttempts(): void
+    {
+        $harness = new Harness();
+        for ($attempt = 0; $attempt < 10; ++$attempt) {
+            $harness->post('/admin/login', ['username' => 'probe-' . $attempt, 'password' => 'wrong password value']);
+        }
+        $blocked = $harness->post('/admin/login', ['username' => Harness::USERNAME, 'password' => 'wrong password value']);
+
+        self::assertSame(429, $blocked->status);
+        self::assertArrayNotHasKey('login-account|' . Harness::USERNAME, $harness->rateLimiter->hits);
+    }
+
+    public function testRemovedAdminLosesActiveSession(): void
+    {
+        $harness = new Harness();
+        $harness->signIn();
+        self::assertSame(200, $harness->get('/admin')->status);
+        $harness->admins->users = [];
+
+        self::assertSame('/admin/login', $harness->get('/admin')->headers['Location']);
+        self::assertNull($harness->session->get('admin_id'));
+    }
+
     public function testPaginationIsClamped(): void
     {
         $harness = new Harness();

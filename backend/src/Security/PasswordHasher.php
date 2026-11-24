@@ -7,6 +7,7 @@ namespace SecureContact\Security;
 final class PasswordHasher
 {
     public const int MAX_PASSWORD_BYTES = 1024;
+    private const string DECOY_HASH = '$argon2id$v=19$m=65536,t=3,p=1$Zi5XQlNQRVVWc05lbDF5UQ$AdjGntuHlicDg80j3j0eocGiA8LJTRxhVEjGleQWXYI';
 
     private ?string $decoyHash = null;
 
@@ -22,7 +23,13 @@ final class PasswordHasher
 
     public function verify(string $password, string $hash): bool
     {
-        return strlen($password) <= self::MAX_PASSWORD_BYTES && password_verify($password, $hash);
+        if (strlen($password) > self::MAX_PASSWORD_BYTES) {
+            $this->burnVerification($password);
+
+            return false;
+        }
+
+        return password_verify($password, $hash);
     }
 
     public function needsRehash(string $hash): bool
@@ -32,7 +39,15 @@ final class PasswordHasher
 
     public function burnVerification(string $password): void
     {
-        $this->decoyHash ??= $this->hash(bin2hex(random_bytes(16)));
-        password_verify(substr($password, 0, self::MAX_PASSWORD_BYTES), $this->decoyHash);
+        password_verify(substr($password, 0, self::MAX_PASSWORD_BYTES), $this->decoy());
+    }
+
+    private function decoy(): string
+    {
+        if (!$this->needsRehash(self::DECOY_HASH)) {
+            return self::DECOY_HASH;
+        }
+
+        return $this->decoyHash ??= $this->hash(bin2hex(random_bytes(16)));
     }
 }

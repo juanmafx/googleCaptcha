@@ -1,13 +1,17 @@
 Test report for googleCaptcha 1.0.0
 Run date: 2026-11-24
-Environment: official php:8.4-cli and php:8.5-cli containers, disposable mysql:8.4 on an isolated network
+Environment: clean Composer install, official php:8.4-cli and php:8.5-cli containers, disposable mysql:8.4 on an isolated network
 
 --- PHP 84 PHPUnit ---
 Runtime:       PHP 8.4.28
-OK (95 tests, 197 assertions)
+OK (109 tests, 221 assertions)
 --- PHP 85 PHPUnit ---
 Runtime:       PHP 8.5.13
-OK (95 tests, 197 assertions)
+OK (109 tests, 221 assertions)
+
+--- Static analysis and dependency audit ---
+PHPStan level 8: no errors
+composer audit --locked: No security vulnerability advisories found.
 
 --- Live server smoke test on PHP 8.5 (scratch script, not committed) ---
 PASS create-admin CLI
@@ -32,4 +36,11 @@ PASS stylesheet served
 PASS production cookie __Host- Secure
 PASS production HSTS
 
-Not exercised: live Google reCAPTCHA, real SMTP delivery, real browser rendering.
+--- Headless Chromium with Google's published reCAPTCHA test keys (scratch script, not committed) ---
+Runs on the final code: 6
+Completed (widget solved, redirected to /thanks, one encrypted row stored): 4
+Stopped before submission: 2 (widget not loaded within the wait: 1, checkbox click timed out: 1; cause not determined)
+CSP violations across all runs: 0
+Plaintext probe values found in the database: 0
+
+Not exercised: production reCAPTCHA keys, real SMTP delivery, TLS with PHP-FPM, GitHub Actions.

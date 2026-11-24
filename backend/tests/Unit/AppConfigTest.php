@@ -25,6 +25,15 @@ final class AppConfigTest extends TestCase
         ];
     }
 
+    public function testEnvironmentExampleSurvivesShellSourcing(): void
+    {
+        $lines = (array) file(dirname(__DIR__, 3) . '/.env.example', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        $dsn = array_values(array_filter($lines, static fn (mixed $line): bool => str_starts_with((string) $line, 'DATABASE_DSN=')));
+
+        self::assertCount(1, $dsn);
+        self::assertMatchesRegularExpression('/\ADATABASE_DSN="[^"]+;[^"]+"\z/', (string) $dsn[0]);
+    }
+
     public function testDefaultsToProduction(): void
     {
         $config = AppConfig::fromEnvironment(self::valid());

@@ -44,14 +44,18 @@ final readonly class CreateAdminCommand
         if ($this->admins->findByUsername($username) !== null) {
             throw new InvalidArgumentException('That username already exists.');
         }
-        if ($this->totp->matchStep($secret, $confirmationCode) === null) {
+        $confirmedStep = $this->totp->matchStep($secret, $confirmationCode);
+        if ($confirmedStep === null) {
             throw new InvalidArgumentException('The authenticator code did not match.');
         }
 
-        return $this->admins->create(
+        $id = $this->admins->create(
             $username,
             $this->passwords->hash($password),
             $this->totpCipher->encrypt($secret, AdminAuthenticator::totpContext($username)),
         );
+        $this->admins->advanceTotpStep($id, $confirmedStep);
+
+        return $id;
     }
 }

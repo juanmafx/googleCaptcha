@@ -27,6 +27,7 @@ This project follows [Semantic Versioning](https://semver.org/).
 ### Security
 
 - Fixed reflected XSS, unencoded verification parameters, and exposure of the secret in a URL.
+- Equalized login timing, blocked replay of the enrollment TOTP code, grouped IPv6 rate limits by /64, and ended sessions of removed admins.
 
 ## Pre-1.0 (2019)
 

@@ -40,7 +40,7 @@ jobs:
           php-version: ${{ matrix.php }}
           extensions: curl, dom, mbstring, pdo_mysql, sodium, xml, xmlwriter
           coverage: none
-          tools: none
+          tools: composer:v2
       - run: composer validate --no-check-publish
       - run: composer install --no-interaction --no-progress --no-scripts --no-plugins --prefer-dist
       - run: composer audit --locked --no-interaction

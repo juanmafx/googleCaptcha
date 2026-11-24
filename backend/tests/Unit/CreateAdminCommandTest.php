@@ -48,6 +48,14 @@ final class CreateAdminCommandTest extends TestCase
         self::assertSame($secret, $this->cipher->decrypt($admin->encryptedTotpSecret, AdminAuthenticator::totpContext('site-admin')));
     }
 
+    public function testConfirmationCodeCannotBeReplayedAtLogin(): void
+    {
+        $secret = $this->command->prepareSecret();
+        $id = $this->command->create('site-admin', self::PASSWORD, $secret, TOTP::createFromSecret($secret)->at($this->clock->time));
+
+        self::assertFalse($this->admins->advanceTotpStep($id, intdiv($this->clock->time, 30)));
+    }
+
     public function testRejectsWrongConfirmationCode(): void
     {
         $secret = $this->command->prepareSecret();

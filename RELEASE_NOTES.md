@@ -1,7 +1,5 @@
 # Release Notes: 1.0.0
 
-Status: prepared, not tagged or published.
-
 The first versioned release turns the 2019 two-file reCAPTCHA example into a hardened contact form with encrypted storage and a two-factor admin inbox.
 
 ## Highlights
@@ -15,7 +13,7 @@ The first versioned release turns the 2019 two-file reCAPTCHA example into a har
 
 This release is a breaking rewrite.
 
-- Requires PHP 8.4 or newer and MySQL 8.4.
+- Requires PHP 8.4.1 or newer with Argon2 support, and MySQL 8.4.
 - Set the variables in `.env.example` and load `db/schema.sql`.
 - Point the web root at `backend/public`.
 - Create an administrator with `php backend/bin/create-admin.php <username>`.
@@ -23,4 +21,4 @@ This release is a breaking rewrite.
 
 ## Before deploying
 
-Confirm that the reCAPTCHA widget renders under the CSP and that mail delivery works with your provider. Neither was tested against live services. See [docs/SECURITY_AUDIT.md](docs/SECURITY_AUDIT.md).
+Confirm that the reCAPTCHA widget works with your production keys and that mail delivery works with your provider. The widget was tested only with Google's published test keys in headless Chromium, where four of six runs completed, and mail delivery was not tested against a real server. See [docs/SECURITY_AUDIT.md](docs/SECURITY_AUDIT.md).
