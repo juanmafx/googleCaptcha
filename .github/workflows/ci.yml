@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [master, modernize/2026]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.4', '8.5']
+    services:
+      mysql:
+        image: mysql:8.4@sha256:cd05748e60471137face0ba0a256c9c48669198aee1f12132f413fc91fd8948f
+        env:
+          MYSQL_RANDOM_ROOT_PASSWORD: 'yes'
+          MYSQL_DATABASE: contact_test
+          MYSQL_USER: contact_test
+          MYSQL_PASSWORD: ephemeral-test-only
+        ports:
+          - 127.0.0.1:3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping -h 127.0.0.1 -ucontact_test -pephemeral-test-only"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 30
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: curl, dom, mbstring, pdo_mysql, sodium, xml, xmlwriter
+          coverage: none
+          tools: none
+      - run: composer validate --no-check-publish
+      - run: composer install --no-interaction --no-progress --no-scripts --no-plugins --prefer-dist
+      - run: composer audit --locked --no-interaction
+      - run: vendor/bin/phpstan analyse --no-progress
+      - run: vendor/bin/phpunit --no-progress
+        env:
+          TEST_DATABASE_DSN: mysql:host=127.0.0.1;port=3306;dbname=contact_test;charset=utf8mb4
+          TEST_DATABASE_USER: contact_test
+          TEST_DATABASE_PASSWORD: ephemeral-test-only

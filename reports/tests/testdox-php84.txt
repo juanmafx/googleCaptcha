@@ -1,0 +1,121 @@
+Admin Flow (SecureContact\Tests\Functional\AdminFlow)
+ [x] Dashboard requires authentication
+ [x] Password alone does not grant access
+ [x] Full login regenerates session and shows escaped data
+ [x] Invalid credentials share one message
+ [x] Wrong code is rejected
+ [x] Totp code cannot be replayed
+ [x] Totp attempts are rate limited
+ [x] Login attempts are rate limited per account
+ [x] Pending login expires
+ [x] Idle session expires
+ [x] Absolute session lifetime is enforced
+ [x] Logout requires csrf and destroys session
+ [x] Tampered record does not break dashboard
+ [x] Records cannot be swapped between rows
+ [x] Pagination is clamped
+
+App Config (SecureContact\Tests\Unit\AppConfig)
+ [x] Defaults to production
+ [x] Rejects invalid configuration with data set "missing key"
+ [x] Rejects invalid configuration with data set "short key"
+ [x] Rejects invalid configuration with data set "non base64 key"
+ [x] Rejects invalid configuration with data set "missing secret"
+ [x] Rejects invalid configuration with data set "unknown environment"
+ [x] Rejects invalid configuration with data set "header injection in sender"
+ [x] Rejects invalid configuration with data set "invalid recipient"
+
+Contact Flow (SecureContact\Tests\Functional\ContactFlow)
+ [x] Form renders csrf token captcha and headers
+ [x] Valid submission is encrypted and notified
+ [x] Missing csrf is rejected before any work
+ [x] Failed captcha stores nothing
+ [x] Header injection is rejected without mail
+ [x] Reflected values are escaped
+ [x] Captcha token is never reflected
+ [x] Array parameters do not crash
+ [x] Rate limit blocks sixth submission
+ [x] Non captcha pages drop google from csp
+ [x] Unknown route and stylesheet
+
+Contact Validator (SecureContact\Tests\Unit\ContactValidator)
+ [x] Accepts and trims valid input
+ [x] Rejects control characters with data set "crlf in email"
+ [x] Rejects control characters with data set "trailing crlf in email"
+ [x] Rejects control characters with data set "lf in email"
+ [x] Rejects control characters with data set "crlf in name"
+ [x] Rejects control characters with data set "nul in name"
+ [x] Rejects control characters with data set "nul in message"
+ [x] Rejects invalid input with data set "empty name"
+ [x] Rejects invalid input with data set "long name"
+ [x] Rejects invalid input with data set "bad email"
+ [x] Rejects invalid input with data set "long email"
+ [x] Rejects invalid input with data set "empty message"
+ [x] Rejects invalid input with data set "long message"
+ [x] Rejects invalid input with data set "invalid utf8"
+ [x] Counts multibyte characters not bytes
+
+Create Admin Command (SecureContact\Tests\Unit\CreateAdminCommand)
+ [x] Creates admin with encrypted secret
+ [x] Rejects wrong confirmation code
+ [x] Rejects short password
+ [x] Rejects invalid username
+ [x] Rejects duplicate username
+
+Csrf Guard (SecureContact\Tests\Unit\CsrfGuard)
+ [x] Token is stable within session
+ [x] Validates only matching token
+ [x] Rejects everything without session token
+ [x] Rotation invalidates previous token
+
+Field Cipher (SecureContact\Tests\Unit\FieldCipher)
+ [x] Round trip hides plaintext
+ [x] Nonces make ciphertexts unique
+ [x] Rejects ciphertext moved to another context
+ [x] Rejects tampered ciphertext
+ [x] Rejects wrong key
+ [x] Rejects truncated payload
+ [x] Rejects short key
+ [x] Key ring derives distinct keys
+
+Mysql Persistence (SecureContact\Tests\Integration\MysqlPersistence)
+ [x] Schema creates expected tables
+ [x] Binary ciphertext round trips at maximum field size
+ [x] Recent orders newest first and paginates
+ [x] Admin round trip and rehash
+ [x] Totp step advances only forward
+ [x] Rate limiter enforces and resets window
+ [x] Rate limiter stores no raw address
+
+Password Hasher (SecureContact\Tests\Unit\PasswordHasher)
+ [x] Produces salted argon 2id hashes
+ [x] Default cost meets documented parameters
+ [x] Flags weaker hash for rehash
+ [x] Rejects oversized password
+
+Recaptcha Verifier (SecureContact\Tests\Unit\RecaptchaVerifier)
+ [x] Sends secret in body over https
+ [x] Fails closed with data set "network failure"
+ [x] Fails closed with data set "invalid json"
+ [x] Fails closed with data set "scalar json"
+ [x] Fails closed with data set "unsuccessful"
+ [x] Fails closed with data set "truthy string"
+ [x] Fails closed with data set "missing field"
+ [x] Skips network for unusable tokens
+ [x] Enforces expected hostname
+
+Symfony Submission Notifier (SecureContact\Tests\Unit\SymfonySubmissionNotifier)
+ [x] Sends notification without personal data
+ [x] Reports transport failure
+
+Totp Service (SecureContact\Tests\Unit\TotpService)
+ [x] Library matches rfc 6238 vector
+ [x] Accepts current and adjacent steps
+ [x] Rejects code outside drift window
+ [x] Rejects malformed codes
+ [x] Provisioning uri carries issuer and account
+
+View (SecureContact\Tests\Unit\View)
+ [x] Escapes html contexts
+ [x] Rejects template traversal
+

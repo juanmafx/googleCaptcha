@@ -1,0 +1,42 @@
+{
+    "name": "juanmafx/google-captcha",
+    "description": "Hardened PHP contact form with reCAPTCHA, encrypted storage, and a TOTP-protected admin area.",
+    "type": "project",
+    "version": "1.0.0",
+    "license": "proprietary",
+    "require": {
+        "php": ">=8.4.1",
+        "ext-curl": "*",
+        "ext-mbstring": "*",
+        "ext-pdo": "*",
+        "ext-pdo_mysql": "*",
+        "ext-sodium": "*",
+        "spomky-labs/otphp": "^11.4",
+        "symfony/mailer": "^8.0"
+    },
+    "require-dev": {
+        "phpstan/phpstan": "^2.1",
+        "phpunit/phpunit": "^13.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "SecureContact\\": "backend/src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "SecureContact\\Tests\\": "backend/tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "analyse": "phpstan analyse --no-progress"
+    },
+    "config": {
+        "allow-plugins": false,
+        "platform": {
+            "php": "8.4.1"
+        },
+        "sort-packages": true
+    }
+}
