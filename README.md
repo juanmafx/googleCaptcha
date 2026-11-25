@@ -1,4 +1,4 @@
-# googleCaptcha
+# recaptcha-contact-form
 
 A hardened PHP contact form protected by Google reCAPTCHA v2, with encrypted storage and an admin inbox behind password plus TOTP two-factor authentication.
 
